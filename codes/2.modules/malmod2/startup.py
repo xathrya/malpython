@@ -1,0 +1,1 @@
+print("MalPython - Malicious Autload with PYTHONSTARTUP")

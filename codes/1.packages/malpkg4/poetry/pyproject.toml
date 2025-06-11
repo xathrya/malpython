@@ -1,0 +1,30 @@
+[build-system]
+requires = ["poetry-core>=1.8.1"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "malpkg4"
+dynamic = ["version"]
+description = "Simple package to demonstrate malicious package"
+readme = "README.md"
+requires-python = ">=3.6"
+authors = [
+    { name = "Satria Ady Pradana" },
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+"Bug Reports" = "https://github.com/xathrya/malpython"
+Documentation = "https://github.com/xathrya/malpython"
+"Source Code" = "https://github.com/xathrya/malpython"
+
+[tool.poetry]
+name = "malpkg4-ci"
+version = "0.1.0"
+build = "BUILD.md"
+description = "Utilities for integrating MalPkg4 into CI pipelines (and beyond)"
+authors = ["Satria Ady Pradana"]

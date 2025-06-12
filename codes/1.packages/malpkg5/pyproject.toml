@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "malpkg5"
+dynamic = ["version"]
+description = "Simple package to demonstrate malicious package"
+readme = "README.md"
+requires-python = ">=3.6"
+authors = [
+    { name = "Satria Ady Pradana" },
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+dependencies = ["pytest"]
+
+[project.entry-points."pytest11"]
+malicious = "malpkg5"

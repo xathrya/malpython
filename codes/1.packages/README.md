@@ -12,6 +12,7 @@ Sample as demonstration of how to insert malicious code into packages.
 - `Malpkg2 - Malicious Setup`: insert code into `setup.py` and execute it during installation
 - `Malpkg3 - Malicious Setup (Hook)`: insert code into `setup.py`, override the cmdlet, and execute it during installation
 - `Malpkg4 - Malicious Backend Hook`: insert code as a build hook.
+- `Malpkg5 - Malicious Entry Points`: create entry points as hook of other tools.
 
 ## Distribution
 

@@ -1,0 +1,62 @@
+# Build artifacts
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Python
+*.so
+*.o
+.Python
+
+# Generated documentation
+site/
+docs/_build/
+
+# Compiled patches
+*.patch.orig
+*.patch.rej
+
+# System files
+.env
+.env.local
+.env.*.local
+
+# Sensitive files (should not be committed)
+credentials/
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Package building
+Python-*/
+cpython/

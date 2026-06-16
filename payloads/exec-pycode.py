@@ -20,3 +20,7 @@ def payload():
     exec(compile(code,"<string>","exec"))
 
 payload()
+
+# compile(CODE, "<string>", "exec") - compile the python code
+#       into bytecode
+# exec(BYTECODE) - execute the bytecode

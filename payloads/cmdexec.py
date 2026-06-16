@@ -5,6 +5,7 @@
 import subprocess 
 
 # simple command as sample
+# can be obfuscated by encode or transform to something else
 COMMAND = r"whoami"
 
 # spawn new process for each command
@@ -26,3 +27,10 @@ print(run(COMMAND))
 
 # Scenario:
 # Often used to execute malicious program or implant
+
+# Variations:
+# - subprocess.run() / subprocess.call() as wrapper for Popen()
+# - os.system() shell invocation, but worse for stealth
+# - os.execve() / os.execve() etc for process eecution 
+#   which replace the invoking process
+# - multiprocessing.Process

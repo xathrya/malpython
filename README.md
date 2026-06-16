@@ -92,12 +92,15 @@ malpython/
 Supply chain attacks via compromised or masqueraded packages on PyPI. Focus on executing code before, during, or after package installation.
 
 **Key Techniques:**
-- **Direct Injection** — Insert code into legitimate package modules
-- **Setup Hooks** — Execute arbitrary code during installation via `setup.py`
-- **Build Backend Hooks** — Leverage PEP 517/518 build system integration
-- **Entry Points** — Register CLI commands or plugin entry points
+- **Direct Injection** — Insert code into legitimate package modules (malpkg1)
+- **Setup Hooks** — Execute arbitrary code during installation via `setup.py` (malpkg2-3)
+- **Build Backend Hooks** — Leverage PEP 517/518 build system integration (malpkg4)
+- **Entry Points** — Register CLI commands or plugin entry points (malpkg5)
+- **Namespace Poisoning** — Hijack shared namespace packages like google.* or aws.* (malpkg6)
+- **Implicit Dependencies** — Force installation of malicious transitive dependencies (malpkg7)
+- **Dynamic Metadata** — Exploit dynamic pyproject.toml configuration for code execution (malpkg8)
 
-**Impact**: When a user installs a package, malicious code executes with the user's privileges.
+**Impact**: When a user installs a package, malicious code executes with the user's privileges. Can affect downstream packages and infrastructure.
 
 **Learn More**: [codes/1.packages/README.md](codes/1.packages/README.md)
 
@@ -130,11 +133,13 @@ System-level compromise via Python interpreter manipulation. Focus on tampering 
 
 ### 4. Payload Examples (`payloads/`)
 
-Real-world attack scenarios demonstrating impact.
+Real-world attack scenarios demonstrating impact and evasion techniques.
 
 **Examples:**
-- **AWS Credential Theft** — Extract and exfiltrate AWS credentials from environment
-- *Additional payloads showing data exfiltration and persistence mechanisms*
+- **Credential Theft** - Extract and exfiltrate credentials from files or environment.
+- **Conditional Execution** — Environment detection and sandbox evasion techniques
+- **Anti-Detection** — Techniques to bypass code review, testing, and analysis environments
+- **Staging** - Download and execute next stage payloads.
 
 **Learn More**: [payloads/README.md](payloads/README.md)
 

@@ -9,10 +9,12 @@ This section demonstrates concrete attack scenarios showing how malicious Python
 ### Payload Categories
 
 1. **Credential Theft** — Extract and exfiltrate credentials, tokens, API keys
-2. **System Reconnaissance** — Gather system information for further attacks
-3. **Data Exfiltration** — Steal sensitive data and send to attacker servers
-4. **Persistence** — Maintain access across reboots and sessions
-5. **Lateral Movement** — Compromise related systems and services
+2. **System Reconnaissance** — Gather system information and environment details
+3. **Cloud Reconnaissance** — Enumerate cloud infrastructure and metadata
+4. **Repository Reconnaissance** — Extract secrets from git repos and source code
+5. **Data Exfiltration** — Steal sensitive data and send to attacker servers
+6. **Persistence** — Maintain access across reboots and sessions
+7. **Lateral Movement** — Compromise related systems and services
 
 ### Design Principles
 
@@ -111,31 +113,178 @@ with open(os.path.expanduser('~/.ssh/id_rsa')) as f:
 
 ## Payload Examples
 
-### steal-aws-credentials
+### conditional_execution.py
 
-**Objective**: Extract and exfiltrate AWS credentials  
-**Target**: Developers with AWS credentials in environment/config  
-**Impact**: Unauthorized AWS API access, data theft, resource abuse  
+**Objective**: Environment detection and sandbox evasion  
+**Target**: All users installing malicious packages  
+**Impact**: Bypasses code review, testing, and sandbox analysis  
 
 **Techniques**:
-- Environment variable harvesting
-- ~/.aws/credentials file parsing
-- ~/.aws/config parsing  
-- AWS session token theft
-- EC2 instance metadata access (if running on EC2)
-- STS temporary credentials
+- CI/CD environment detection (GitHub Actions, GitLab CI, Travis, Jenkins)
+- Test environment detection (pytest, unittest, nose)
+- Sandbox/VM detection (Docker, VirtualBox, VMware)
+- Debugger and monitoring tool detection
+- Analysis tool detection (Cuckoo, Frida, strace)
+- Conditional payload execution based on environment
+
+**Why Critical**:
+- Malicious code only executes in "production" environments
+- Bypasses automated code review and testing
+- Evades analysis sandboxes and security scanners
+- Makes detection extremely difficult
+- Used in real-world APT supply chain attacks
 
 **Detection Points**:
-- File access to ~/.aws/*
-- Environment variable reads
-- Network connection to attacker server
-- AWS API calls from unexpected IP
+- Review environment detection logic
+- Monitor for suspicious environment checks
+- Test code in multiple environment types
+- Use multiple detection mechanisms in parallel
 
 **Mitigation**:
-- Use IAM roles (not long-term credentials in files)
-- Credential validation before execution
+- Run code review in production-like environment
+- Use multiple analysis techniques (static + dynamic)
+- Monitor actual runtime behavior, not just code
+- Test packages in containers with production configuration
+- Cross-reference execution traces across environments
+
+### persistence-scheduled-tasks.py
+
+**Objective**: Establish persistence across reboots and sessions  
+**Target**: Compromised systems requiring long-term access  
+**Impact**: Malware survives reboots, maintains access for lateral movement  
+
+**Techniques**:
+- **Linux/macOS**: Cron jobs, shell RC files (.bashrc, .zshrc), systemd services, at command
+- **Windows**: Scheduled Tasks, Startup folder, Registry Run keys
+- **macOS**: LaunchAgents, LaunchDaemons, login items
+- Process detachment and background execution
+- Hidden execution via service mechanisms
+
+**Why Critical**:
+- Persistence is essential for long-term attacks
+- Different mechanisms per OS evade single detection approach
+- RC files execute every shell session
+- Scheduled tasks run silently without user interaction
+- Used in ransomware, APT, and botnet campaigns
+
+**Real-World Examples**:
+- Emotet: Windows scheduled tasks + Registry Run keys
+- APT28: systemd service creation for long-term access
+- Lazarus: macOS LaunchAgent persistence
+
+**Detection Points**:
+- Monitor cron jobs: `crontab -l`, `/etc/cron.d/`
+- Check shell RC files for suspicious commands
+- Review systemd services: `systemctl list-unit-files`
+- Windows Task Scheduler for unusual tasks
+- Registry monitoring for Run keys
+- Log analysis (syslog, Event Viewer)
+
+**Mitigation**:
+- Host-based firewall with egress filtering
+- Regular audit of startup mechanisms
+- File integrity monitoring (FIM)
+- EDR solutions with behavior analysis
+- Principle of least privilege
+- Endpoint Detection and Response (EDR)
+
+### cloud-metadata-recon.py
+
+**Objective**: Discover cloud infrastructure and steal credentials  
+**Target**: Workloads running in AWS/Azure/GCP  
+**Impact**: Lateral movement, privilege escalation, data breach  
+
+**Techniques**:
+- AWS EC2 metadata service (169.254.169.254)
+  - IMDSv1 (unsecured) and IMDSv2 (token-based) access
+  - Retrieve IAM temporary credentials
+  - Enumerate instance details, VPC, subnets
+  - Instance identity documents
+- Azure metadata service enumeration
+- GCP metadata service and service account tokens
+- Extraction of credentials valid for hours
+
+**Why Critical**:
+- Automatically discoverable in cloud environments
+- Provides temporary credentials without logging (on some configs)
+- Credentials often have broad permissions
+- No requirement for authentication to query
+- Used by Kinsing, TeamTNT, and other cloud-targeting APT
+
+**Real-World Examples**:
+- Kinsing: AWS metadata exploitation for cryptomining
+- TeamTNT: Multi-cloud credential extraction
+- SCARLETEEL: AWS metadata + privilege escalation
+
+**Detection Points**:
+- CloudTrail logs for unusual AssumeRole calls
+- VPC Flow Logs showing 169.254.169.254 traffic
+- Network monitoring for metadata service queries
+- Unusual IAM credential usage from unexpected IPs
+- Azure Activity Logs for metadata access
+- GCP Cloud Audit Logs for token requests
+
+**Mitigation**:
+- Require IMDSv2 with mandatory token headers
+- Network segmentation and firewall rules
+- Monitor metadata service access
+- Use IAM roles (not long-lived credentials)
 - Regular credential rotation
-- Monitor ~/.aws/* with file integrity monitoring
+- Egress filtering to block metadata service
+
+### git-config-recon.py
+
+**Objective**: Extract secrets and sensitive data from git repositories  
+**Target**: Developer machines with multiple repositories  
+**Impact**: API keys, database credentials, source code theft  
+
+**Techniques**:
+- Find all git repositories on the system
+- Extract authentication tokens from .git/config
+- Scan git history for committed secrets
+- Locate .env files with API keys and passwords
+- Identify commit authors and email addresses
+- Analyze repository structure to determine criticality
+- Extract remote URLs and clone information
+
+**Secrets Patterns Detected**:
+- AWS Access Keys (AKIA...)
+- GitHub tokens (ghp_...)
+- Private keys (RSA, EC, SSH)
+- API keys and tokens
+- Database connection strings
+- Slack tokens
+- Service credentials
+
+**Why Critical**:
+- Developers often accidentally commit secrets
+- Git history is difficult to fully purge
+- Single compromised developer machine compromises all repos
+- Credentials often have production-level permissions
+- Access to source code aids further attacks
+
+**Real-World Examples**:
+- GitRob: Automated secret scanning across GitHub
+- TruffleHog: Detects hardcoded secrets in repositories
+- Codecov breach: Credentials extracted from git history
+
+**Detection Points**:
+- Monitor git command execution patterns
+- Alert on unusual git log commands
+- Monitor access to .git directories
+- File access monitoring on repositories
+- Process monitoring for git operations
+- Unusual process names or parent-child relationships
+
+**Mitigation**:
+- Use `.gitignore` to prevent secret commits
+- Pre-commit hooks with detect-secrets
+- Automated secret scanning (TruffleHog, detect-secrets)
+- Git history rewriting tools (git-filter-branch)
+- Credential rotation immediately after discovery
+- git-crypt or similar for encrypting sensitive files
+- Branch protection rules to enforce code review
+- Regular security audits of git logs
 
 ## Anti-Detection Techniques
 

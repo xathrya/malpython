@@ -8,6 +8,7 @@ import importlib
 import importlib.abc
 import importlib.machinery
 
+# Hook into specific library (TARGET only)
 class MalPyHook(importlib.abc.MetaPathFinder, importlib.abc.Loader):
     TARGET = "requests"
 
@@ -41,6 +42,7 @@ class MalPyLoader(importlib.abc.Loader):
             module._original_get = module.get 
             module.get = malpy_get
 
+# introduce the hook so it would supercede
 sys.meta_path.insert(0, MalPyHook())
 
 # Test

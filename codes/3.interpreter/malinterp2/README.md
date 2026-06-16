@@ -34,7 +34,7 @@ Patch the source code using the `changes.patch` then build the python
 
 ```sh
 # copy the file.patch to the same folder as the source code.
-cp file.patch /tmp/workdir
+cp changes.patch /tmp/workdir
 pushd /tmp/workdir
 
 # apply the patch

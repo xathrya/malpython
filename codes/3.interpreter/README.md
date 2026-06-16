@@ -215,24 +215,26 @@ Deep hooking points:
 
 ### Basic Build Process
 
+It is recommended to create a working directory when patching the source tree (e.g. `/tmp/workdir`).
+
 ```bash
-# Download Python source
+# Download Python source and refer it as cpython
 wget https://www.python.org/ftp/python/3.11.9/Python-3.11.9.tar.xz
 tar -xf Python-3.11.9.tar.xz
-cd Python-3.11.9
+mv Python-3.11.9 cpython
 
-# Apply malicious patch
-patch -p1 < ../malinterp1.patch
+# Apply malicious patch (from each case)
+patch -p1 -d cpython < changes.patch
 
 # Configure with specific paths (avoid overwriting system Python)
-./configure --prefix=/opt/python-modified
+./configure --prefix=/opt/malpython
 
 # Build and install
 make -j$(nproc)
 make install
 
 # Verify with custom interpreter
-/opt/python-modified/bin/python3 --version
+/opt/malpython/bin/python3 --version
 ```
 
 ### Safe Testing Environment
@@ -249,6 +251,53 @@ docker run -it ubuntu:latest bash
 # - Test behavior
 # - Document results
 # - Completely destroy container after testing
+```
+
+### Generating Patch Files
+
+When creating the patch file (`changes.patch`) from the scenario, we can do:
+
+#### Using `diff` (Simple, One-Time)
+
+```bash
+# Compare original and modified source trees
+diff -Naur cpython_original/ cpython_modified/ > changes.patch
+
+# Or for specific files
+diff -u cpython_original/Modules/main.c cpython_modified/Modules/main.c > changes.patch
+```
+
+#### Using Git (Recommended, Better for Tracking)
+
+```bash
+# 1. Initialize git in the source directory
+cd cpython
+git init
+git config user.email "dev@example.com"
+git config user.name "Developer"
+git add -A
+git commit -m "Original Python 3.11.9 baseline"
+
+# 2. Make modifications to files...
+
+# 3. Generate patch from changes
+git diff HEAD > changes.patch
+
+# Optional: View what changed before generating patch
+git status    # Show modified files
+git diff      # Show actual modifications
+```
+
+#### Verifying the Patch
+
+Always verify your patch can be applied cleanly:
+
+```bash
+# Dry-run: test without actually applying
+patch --dry-run -p1 -d cpython < changes.patch
+
+# If successful, apply the patch
+patch -p1 -d cpython < changes.patch
 ```
 
 ## Samples

@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "malpkg6-modern"
+version = "0.1.0"
+description = "Namespace package poisoning example (PEP 420 implicit namespace style)"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    { name = "Satria Ady Pradana" },
+]
+classifiers = [
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+
+# PEP 420 implicit namespace packages have NO __init__.py at
+# `google/`. setuptools finds them when `namespaces = true`.
+[tool.setuptools.packages.find]
+include = ["google*"]
+namespaces = true

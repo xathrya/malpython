@@ -1,0 +1,6 @@
+# Minimal PEP 517 shim so `pip install .` and `python -m build`
+# can invoke setuptools in isolated-build mode. All project metadata
+# intentionally stays in setup.py to keep this example "legacy".
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"

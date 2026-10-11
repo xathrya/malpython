@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "malpkg7"
+version = "0.1.0"
+description = "Payload hidden inside a non-code asset file"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    { name = "Satria Ady Pradana" }
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# Ship the "CA bundle" asset inside the wheel. Without this entry
+# setuptools would drop certs/ca-bundle.pem on build and the loader
+# in __init__.py would find nothing to decode.
+[tool.setuptools.package-data]
+malpkg7 = ["certs/*.pem"]

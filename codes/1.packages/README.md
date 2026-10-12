@@ -79,6 +79,26 @@ Create CLI commands or plugin entry points that execute malicious code.
 
 **Example**: Hijack common CLI tool entry points (e.g., pytest, black, mypy plugins).
 
+### Malpkg6: Namespace Package Poisoning
+
+Inject module into shared Python namespace (`google.*`, `aws.*`, `azure.*`, `kubernetes.*`, …) so attacker code runs on an import the victim already trusts.
+
+**Mechanism**: Ship a package that registers in a well-known namespace. In the legacy shape, drop a regular `google/__init__.py` into site-packages so bare `import google` executes the payload. In the modern shape, use a PEP 420 implicit namespace package (no `__init__.py` at the namespace root) and plant the payload one level down — the first *shared* sub-namespace, e.g. `google.cloud.__init__`.
+**Execution Context**: User's privileges, on first import of the namespace or sub-namespace
+**Detection Difficulty**: High (looks like an ordinary namespace import; `pkg_resources`-era declarations are stripped on build, so modern poisoning doesn't resemble the old pattern)
+
+**Two variants shipped**: [`legacy/`](malpkg6/legacy) reproduces the historical `google/__init__.py` squat; [`modern/`](malpkg6/modern) poisons `google.cloud` via PEP 420 implicit namespace packages.
+
+### Malpkg7: Payload in Non-Code Asset
+
+Hide the payload in a file that doesn't look like code — a certificate bundle, locale catalog, image, model weight, config blob — and keep only a short, benign-looking loader in Python.
+
+**Mechanism**: Package ships `certs/ca-bundle.pem` with the correct PEM headers and a 64-column base64 body. The body is not DER — it decodes to Python source. The `__init__.py` loader reads the file, strips the PEM frame, base64-decodes the content, and `exec()`s the bytes at import time. `[tool.setuptools.package-data]` is what carries the asset into the wheel; without it the attack fails post-install.
+**Execution Context**: User's privileges, every time the package is imported
+**Detection Difficulty**: High (payload sits outside the `.py` tree so source-only scanners miss it; the loader itself is ~25 lines of unremarkable stdlib code)
+
+**Advantage**: Payload can be swapped between releases without touching any `.py` file, which is useful for A/B rotation and for evading hash-based alerts aimed at source files.
+
 ## Package Distribution Mechanisms
 
 ### Source Distribution (sdist)
@@ -87,10 +107,19 @@ Contains source code requiring build on user's machine.
 
 **Format**: `packagename-version.tar.gz`
 
-**Build Process**:
+**Build & install (modern, PEP 517)**:
 ```sh
-python3 setup.py sdist bdist_wheel
-pip3 install .
+# builds both sdist and wheel into dist/
+python3 -m build --sdist
+
+# install the built sdist (triggers the build on the user's machine)
+pip3 install dist/<packagename>-<version>.tar.gz
+```
+
+**Build & install (legacy setup.py)**:
+```sh
+python3 setup.py sdist
+pip3 install dist/<packagename>-<version>.tar.gz
 ```
 
 **Advantages for Attackers**:
@@ -100,14 +129,22 @@ pip3 install .
 
 ### Binary Distribution (Wheels)
 
-Pre-compiled bytecode or binaries; no build required.
+Pre-compiled bytecode or binaries; no build required on the victim machine.
 
 **Format**: `packagename-version-abi-platform.whl`
 
-**Installation**:
+**Build & install**:
 ```sh
+# builds the wheel (and sdist, unless --wheel is passed) into dist/
 python3 -m build
-python3 -m pip install .
+
+# install the built wheel
+pip3 install dist/<packagename>-<version>-py3-none-any.whl
+```
+
+To install straight from the source tree without an explicit build step (pip invokes the build backend behind the scenes):
+```sh
+pip3 install .
 ```
 
 **Advantages for Attackers**:
